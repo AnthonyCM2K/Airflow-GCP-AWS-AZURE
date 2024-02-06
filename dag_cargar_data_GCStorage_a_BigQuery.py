@@ -6,7 +6,7 @@ from airflow.providers.google.cloud.operators.bigquery import BigQueryExecuteQue
 
 
 default_args = {
-    'owner': 'Anthony Criollo'
+    'owner': 'Anthony Criollo',
     'start_date': days_ago(7)
 }
 

@@ -1,26 +1,48 @@
+
 from airflow import DAG
 from airflow.utils.dates import days_ago
 
+from airflow.models import Variable
+
 from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
 from airflow.providers.google.cloud.operators.bigquery import BigQueryExecuteQueryOperator
-
-# Importamos Hooks
 from airflow.providers.google.cloud.hooks.gcs import GCSHook
+
 from airflow.operators.python import PythonOperator
-#fecha de hoy
-from datatime import date
+
+
+#Varibales
+OWNER = Variable.get('owner')
+MENSAJE = Variable.get('mensaje')
+INTERVAL = Variable.get('interval')
+PROJECT = Variable.get('project')
+BUCKET = Variable.get('bucket')
+BACKUP_BUCKET = Variable.get('bucket_bucket')
+DATASET = Variable.get('dataset')
+ORIG_TABLE = Variable.get('orig_table')
+
 
 default_args = {
-    'owner': 'Anthony Criollo',
+    'owner': OWNER,
     'start_date': days_ago(1)
 }
 
 dag_arg = {
-    'dag_id': 'hooks_xcoms',
-    'schedule_interval': '@daily',
+    'dag_id': 'airflow_Variables_GCSToBigQuery',
+    'schedule_interval': INTERVAL,
     'catchup': False,
-    'default_arg': default_args,
-    'max_active_runs': 1 ##PARALELISMO
+    'max_active_runs': 1,
+    'user_defined_macros': {
+        'mensaje': MENSAJE,
+        'fecha': str(date.today()),
+        'project': PROJECT,
+        'dataset': DATASET,
+        'orig_table': ORIG_TABLE,
+        'dest_table': '{}_resume'.format(ORIG_TABLE),
+        'bucket': BUCKET,
+        'backup_bucket': BACKUP_BUCKET
+    },
+    'default_arg': default_args
 }
 
 # HOOKS
@@ -52,17 +74,17 @@ with DAG(**dag_args) as dag:
     list_files = PythonOperator(
         task_id='list_files',
         python_callable=list_objects,
-        op_kwargs=['original-bucked-987']
+        op_kwargs={'bucket': '{{ bucket }}'}
     )
 
     cargar_datos = GCSToBigQueryOperator(
         task_id='cargar__datos',
-        bucket='original-bucked-987',
+        bucket='{{ bucket }}',
         source_objects=['*'],
         source_format='CSV',
         skip_leading_rows=1,
         field_delimiter=';',
-        destination_project_datset_table='regal-oasis-291423.working_dataset.retail_years',
+        destination_project_datset_table='{{ project }}.{{ dataset }}.{{ orig_table }}',
         create_disposition='CREATE_IF_NEEDED',
         write_disposition='WRITE_APPEND',
         bigquery_conn_id='google_cloud_default',
@@ -72,7 +94,7 @@ with DAG(**dag_args) as dag:
     query = (
         '''
         SELECT `year`, `area`, ROUND(AVG(`total_inc`), 4) AS avg_income
-        FROM `regal-oasis-291423.working_dataset.retail_years`
+        FROM `{{ project }}.{{ dataset }}.{{ orig_table }}`
         GROUP BY `year`, `area`
         ORDER BY `area` ASC
         '''

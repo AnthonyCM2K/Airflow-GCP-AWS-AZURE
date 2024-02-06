@@ -1,0 +1,10 @@
+{
+    "owner": "Anthony Criollo",
+    "mensaje": "Aqui DAG CON VARIBALES Y MACRO en Apache Airflow!",
+    "interval": "@daily",
+    "project": "regal-oasis-291423",
+    "bucket": "original-bucked-987",
+    "backup_bucket": "tem-bucket-987",
+    "dataset": "working_dataset",
+    "orig_table": "retail_years"
+}

@@ -1,0 +1,5 @@
+{
+    "owner": "Anthony Criollo",
+    "mensaje": "Aqui DAG CON VARIBALES Y MACRO en Apache Airflow!",
+    "interval": "@daily"
+}
