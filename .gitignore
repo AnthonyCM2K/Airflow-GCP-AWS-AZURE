@@ -1,0 +1,5 @@
+aws
+Azure
+
+#dag_cargar_data_GCStorage_a_BigQuery.py
+#hooks_xcoms.py
